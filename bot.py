@@ -24,46 +24,6 @@ sudo_users = [138554855, 92027269]
 dispatcher = updater.dispatcher
 
 
-@run_async
-def build(bot, update):
-    if is_authorized(update):
-        bot.sendChatAction(chat_id=update.message.chat_id,
-                           action=ChatAction.TYPING)
-        os.chdir(path)
-        bot.sendMessage(update.message.chat_id, "Building!")
-        os.system('cd ~/src && bash aosip.sh %s %s' % (update.message.chat_id, update.message.text))
-        bot.sendMessage(update.message.chat_id, "Build is done, bot is usable again!")
-    else:
-        send_not_authorized_message(bot, update)
-
-
-@run_async
-def sync(bot, update):
-    if is_authorized(update):
-        bot.sendMessage(update.message.chat_id, text="Starting repo sync")
-        os.system("bash ~/Kronicbot/sync.sh %s" % update.message.chat_id)
-    else:
-        send_not_authorized_message(bot, update)
-
-
-@run_async
-def pick(bot, update):
-    if is_authorized(update):
-        bot.sendMessage(update.message.chat_id, text="Picking stuff")
-        os.system("bash ~/Kronicbot/pick.sh %s %s" % (update.message.chat_id, update.message.text))
-    else:
-        send_not_authorized_message(bot, update)
-
-
-@run_async
-def clean(bot, update):
-    if is_authorized(update):
-        bot.sendMessage(update.message.chat_id, text="Cleaning")
-        os.system("bash ~/Kronicbot/clean.sh %s" % update.message.chat_id)
-    else:
-        send_not_authorized_message(bot, update)
-
-
 # Not async because used by pull
 def restart(bot, update):
     if is_authorized(update):
@@ -84,36 +44,11 @@ def leave(bot, update):
         send_not_authorized_message(bot, update)
 
 
-@run_async
-def inlinequery(bot, update):
-    query = update.inline_query.query
-    o = execute(query, update, direct=False)
-    results = list()
-
-    results.append(InlineQueryResultArticle(id=uuid4(),
-                                            title=query,
-                                            description=o,
-                                            input_message_content=InputTextMessageContent(
-                                                '*{0}*\n\n{1}'.format(query, o),
-                                                parse_mode="Markdown")))
-
-    bot.answerInlineQuery(update.inline_query.id, results=results, cache_time=10)
-
-
 def send_not_authorized_message(bot, update):
     bot.sendChatAction(chat_id=update.message.chat_id,
                        action=ChatAction.TYPING)
     bot.sendMessage(chat_id=update.message.chat_id, reply_to_message_id=update.message.message_id,
                     text="You aren't authorized for this lulz!")
-
-
-@run_async
-def help(bot, update):
-    bot.sendChatAction(update.message.chat_id, ChatAction.TYPING)
-    bot.sendMessage(update.message.chat_id, reply_to_message_id=update.message.message_id,
-                    text="I've sent you help via PM @" + update.message.from_user.username + ".")
-    bot.sendMessage(update.message.from_user.id,
-                    text="Here is some help for you.\n/build,\n/upload,\n/restart,\n/leave, and\n/help for this menu.")
 
 
 def is_authorized(update):
@@ -278,41 +213,30 @@ class CustomCommands(CommandHandler):
 
 CommandHandler = CustomCommands
 
-buildHandler = CommandHandler('build', build)
 restartHandler = CommandHandler('restart', restart)
 leaveHandler = CommandHandler('leave', leave)
-helpHandler = CommandHandler('help', help)
 idHandler = CommandHandler('id', id)
 pullHandler = CommandHandler('pull', pull)
 pushHandler = CommandHandler('push', push)
 kickHandler = CommandHandler('kick', kick)
 shrugHandler = CommandHandler('shrug', shrug)
-syncHandler = CommandHandler('sync', sync)
-pickHandler = CommandHandler('pick', pick)
-cleanHandler = CommandHandler('clean', clean)
 banHandler = CommandHandler('ban', ban)
 unbanHandler = CommandHandler('unban', unban)
 muteHandler = CommandHandler('mute', mute)
 unmuteHandler = CommandHandler('unmute', unmute)
 
-dispatcher.add_handler(buildHandler)
 dispatcher.add_handler(restartHandler)
 dispatcher.add_handler(leaveHandler)
-dispatcher.add_handler(helpHandler)
 dispatcher.add_handler(idHandler)
 dispatcher.add_handler(pullHandler)
 dispatcher.add_handler(pushHandler)
 dispatcher.add_handler(idHandler)
 dispatcher.add_handler(kickHandler)
 dispatcher.add_handler(shrugHandler)
-dispatcher.add_handler(syncHandler)
-dispatcher.add_handler(pickHandler)
-dispatcher.add_handler(cleanHandler)
 dispatcher.add_handler(banHandler)
 dispatcher.add_handler(unbanHandler)
 dispatcher.add_handler(muteHandler)
 dispatcher.add_handler(unmuteHandler)
-dispatcher.add_handler(InlineQueryHandler(inlinequery))
 
 updater.start_polling()
 updater.idle()
